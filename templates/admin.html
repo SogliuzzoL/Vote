@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Administration</title>
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='style.css') }}"
+        />
+    </head>
+    <body>
+        <div class="container">
+            <h2>⚙️ Panneau d'administration</h2>
+            <p>Connecté en tant que {{ user.username }}</p>
+
+            <form method="POST" style="text-align: left; margin-bottom: 20px">
+                <p>
+                    <label for="title">Titre global :</label><br />
+                    <input
+                        type="text"
+                        id="title"
+                        name="title"
+                        value="{{ settings.title }}"
+                        style="
+                            width: 100%;
+                            padding: 8px;
+                            margin-top: 5px;
+                            border-radius: 5px;
+                        "
+                        required
+                    />
+                </p>
+                <button type="submit" class="btn">
+                    Sauvegarder les paramètres
+                </button>
+            </form>
+
+            <hr />
+
+            <h3>Votes</h3>
+            <a href="{{ url_for('admin_new') }}" class="btn"
+                >Créer un nouveau vote</a
+            >
+
+            {% if polls %} {% for poll in polls %}
+            <div class="modpack-card">
+                <h3>{{ poll.title }}</h3>
+                {% if poll.description %}
+                <p>{{ poll.description }}</p>
+                {% endif %}
+                <p>
+                    Type : {{ poll.vote_type }} | Actif : {{ 'Oui' if
+                    poll.active else 'Non' }}
+                </p>
+
+                <a
+                    href="{{ url_for('admin_edit', poll_id=poll.id) }}"
+                    class="btn"
+                    >Modifier</a
+                >
+                <form
+                    method="POST"
+                    action="{{ url_for('admin_delete', poll_id=poll.id) }}"
+                    style="display: inline"
+                    onsubmit="return confirm('Supprimer ce vote ?');"
+                >
+                    <button
+                        class="btn"
+                        style="
+                            background: #c33;
+                            border: none;
+                            padding: 8px 12px;
+                            color: white;
+                            margin-left: 8px;
+                        "
+                    >
+                        Supprimer
+                    </button>
+                </form>
+                <a
+                    href="{{ url_for('vote_poll', poll_id=poll.id) }}"
+                    class="btn"
+                    >Voter</a
+                >
+                <a
+                    href="{{ url_for('results', poll_id=poll.id) }}"
+                    class="btn"
+                    style="background: #333"
+                    >Résultats</a
+                >
+            </div>
+            {% endfor %} {% else %}
+            <p>Aucun vote pour le moment.</p>
+            {% endif %}
+
+            <a
+                href="{{ url_for('index') }}"
+                class="btn"
+                style="background: #555; margin-top: 20px"
+                >Retour au site</a
+            >
+        </div>
+    </body>
+</html>

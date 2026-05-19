@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Voter</title>
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='style.css') }}"
+        />
+    </head>
+    <body>
+        <div class="container">
+            <h2>{{ poll.title }}</h2>
+            {% if poll.description %}
+            <p>{{ poll.description }}</p>
+            {% endif %}
+
+            <p>Salut {{ user.username }}, à toi de jouer !</p>
+
+            <form method="POST" style="text-align: left">
+                {% if poll.vote_type == 'rating' %} {% for opt in options %}
+                <div class="modpack-card">
+                    <h3>📦 {{ opt.name }}</h3>
+                    <p>Note de 1 (Non merci) à 5 (Trop hype)</p>
+                    <div class="rating">
+                        {% for i in range(1, 6) %}
+                        <input
+                            type="radio"
+                            id="o{{ opt.id }}_{{ i }}"
+                            name="option_{{ opt.id }}"
+                            value="{{ i }}"
+                            required
+                        />
+                        <label for="o{{ opt.id }}_{{ i }}">{{ i }}</label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %} {% elif poll.vote_type == 'single' %}
+                <div class="modpack-card">
+                    <p>Sélectionne ton choix préféré :</p>
+                    {% for opt in options %}
+                    <p style="margin: 10px 0">
+                        <input
+                            type="radio"
+                            id="o{{ opt.id }}"
+                            name="option_choice"
+                            value="{{ opt.id }}"
+                            required
+                        />
+                        <label
+                            for="o{{ opt.id }}"
+                            style="cursor: pointer; font-size: 18px"
+                            >{{ opt.name }}</label
+                        >
+                    </p>
+                    {% endfor %}
+                </div>
+
+                {% elif poll.vote_type == 'multiple' %}
+                <div class="modpack-card">
+                    <p>Coche tous les choix qui t'intéressent :</p>
+                    {% for opt in options %}
+                    <p style="margin: 10px 0">
+                        <input
+                            type="checkbox"
+                            id="o{{ opt.id }}"
+                            name="option_choice"
+                            value="{{ opt.id }}"
+                        />
+                        <label
+                            for="o{{ opt.id }}"
+                            style="cursor: pointer; font-size: 18px"
+                            >{{ opt.name }}</label
+                        >
+                    </p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div style="text-align: center">
+                    <button type="submit" class="btn">
+                        Valider mon vote final
+                    </button>
+                </div>
+            </form>
+        </div>
+    </body>
+</html>

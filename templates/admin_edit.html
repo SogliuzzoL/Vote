@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <title>{% if poll %}Modifier le vote{% else %}Créer un nouveau vote{% endif %}</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    </head>
+    <body>
+        <div class="container">
+            <h2>{% if poll %}Modifier le vote{% else %}Créer un nouveau vote{% endif %}</h2>
+            <p>Connecté en tant que {{ user.username }}</p>
+
+            <form method="POST" style="text-align: left">
+                <p>
+                    <label for="title">Titre :</label><br />
+                    <input type="text" id="title" name="title" value="{{ poll.title if poll else '' }}" style="width:100%; padding:8px; margin-top:5px; border-radius:5px;" required />
+                </p>
+
+                <p>
+                    <label for="description">Description :</label><br />
+                    <textarea id="description" name="description" style="width:100%; padding:8px; margin-top:5px; border-radius:5px;">{{ poll.description if poll else '' }}</textarea>
+                </p>
+
+                <p>
+                    <label for="vote_type">Type de vote :</label><br />
+                    <select id="vote_type" name="vote_type" style="width:100%; padding:8px; margin-top:5px; border-radius:5px;">
+                        <option value="rating" {% if poll and poll.vote_type == 'rating' %}selected{% endif %}>Notes de 1 à 5</option>
+                        <option value="single" {% if poll and poll.vote_type == 'single' %}selected{% endif %}>Choix unique (un seul gagnant)</option>
+                        <option value="multiple" {% if poll and poll.vote_type == 'multiple' %}selected{% endif %}>Choix multiple (cases à cocher)</option>
+                    </select>
+                </p>
+
+                <p>
+                    <label><input type="checkbox" name="active" {% if poll and poll.active %}checked{% endif %}> Actif</label>
+                </p>
+
+                {% if poll and poll.options %}
+                <h3>Options existantes</h3>
+                {% for opt in poll.options %}
+                <div style="margin-bottom:8px;">
+                    <input type="text" name="option_name_{{ opt.id }}" value="{{ opt.name }}" style="width:70%; padding:6px;" />
+                    <label style="margin-left:8px"><input type="checkbox" name="delete_option_{{ opt.id }}"> Supprimer</label>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                <h3>Ajouter des options</h3>
+                <div id="new-options"></div>
+                <p>
+                    <button type="button" class="btn" onclick="addOptionField()">Ajouter une option</button>
+                </p>
+
+                <p>
+                    <button type="submit" class="btn">Sauvegarder</button>
+                    <a href="{{ url_for('admin') }}" class="btn" style="background:#555">Annuler</a>
+                </p>
+            </form>
+        </div>
+
+        <script>
+        function addOptionField(){
+            const container = document.getElementById('new-options');
+            const div = document.createElement('div');
+            div.style.marginBottom = '8px';
+            div.innerHTML = '<input type="text" name="new_option[]" placeholder="Nouvelle option" style="width:70%; padding:6px;" /> <button type="button" onclick="this.parentNode.remove()" class="btn" style="background:#c33; margin-left:8px;">Supprimer</button>';
+            container.appendChild(div);
+        }
+        </script>
+    </body>
+</html>

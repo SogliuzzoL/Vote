@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Accueil du vote</title>
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='style.css') }}"
+        />
+    </head>
+    <body>
+        <div class="container">
+            <h1>{{ settings.title }}</h1>
+
+            {% if user %}
+            <p>Connecté en tant que {{ user.username }}</p>
+            {% else %}
+            <p>Connecte-toi avec Discord pour participer.</p>
+            <a href="{{ login_url }}" class="btn">Se connecter avec Discord</a>
+            {% endif %}
+
+            <hr />
+
+            <h2>Votes actifs</h2>
+            {% if polls %} {% for poll in polls %}
+            <div class="modpack-card">
+                <h3>{{ poll.title }}</h3>
+                {% if poll.description %}
+                <p>{{ poll.description }}</p>
+                {% endif %}
+                <p>Type : {{ poll.vote_type }}</p>
+                <a
+                    href="{{ url_for('vote_poll', poll_id=poll.id) }}"
+                    class="btn"
+                    >Voter</a
+                >
+                <a
+                    href="{{ url_for('results', poll_id=poll.id) }}"
+                    class="btn"
+                    style="background: #333"
+                    >Résultats</a
+                >
+            </div>
+            {% endfor %} {% else %}
+            <p>Aucun vote actif pour le moment.</p>
+            {% endif %}
+        </div>
+    </body>
+</html>
