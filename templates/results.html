@@ -21,7 +21,14 @@
                 <p>Calculé sur {{ res.total_votes }} votes individuels.</p>
                 {% endif %}
             </div>
-            {% endfor %}
+            {% endfor %} {% if user and has_voted %}
+            <a
+                href="{{ url_for('edit_vote', poll_id=poll.id) }}"
+                class="btn"
+                style="background: #2b8a44"
+                >Modifier mon vote</a
+            >
+            {% endif %}
 
             <a
                 href="{{ url_for('index') }}"

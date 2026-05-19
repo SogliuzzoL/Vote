@@ -271,13 +271,103 @@ def vote_poll(poll_id):
         db.session.commit()
         return redirect(url_for("results", poll_id=poll.id))
 
-    return render_template("vote.html", user=user, poll=poll, options=options)
+    return render_template(
+        "vote.html",
+        user=user,
+        poll=poll,
+        options=options,
+        editing=False,
+        user_votes=None,
+    )
+
+
+@app.route("/vote/<int:poll_id>/edit", methods=["GET", "POST"])
+def edit_vote(poll_id):
+    """Permet à un utilisateur de modifier son vote existant.
+
+    On supprime d'abord les votes existants pour cet utilisateur et ce sondage,
+    puis on enregistre les nouveaux en fonction du formulaire.
+    """
+    if "user_id" not in session:
+        return redirect(url_for("index"))
+
+    user = User.query.get(session["user_id"])
+    poll = Poll.query.get_or_404(poll_id)
+    options = poll.options
+
+    existing_votes = Vote.query.filter_by(user_id=user.id, poll_id=poll.id).all()
+
+    if request.method == "POST":
+        # supprimer les anciens votes
+        for v in existing_votes:
+            db.session.delete(v)
+        db.session.commit()
+
+        # recréer en fonction du formulaire
+        if poll.vote_type == "rating":
+            for opt in options:
+                score = request.form.get(f"option_{opt.id}")
+                if score:
+                    db.session.add(
+                        Vote(
+                            user_id=user.id,
+                            poll_id=poll.id,
+                            option_id=opt.id,
+                            score=int(score),
+                        )
+                    )
+
+        elif poll.vote_type == "single":
+            option_id = request.form.get("option_choice")
+            if option_id:
+                db.session.add(
+                    Vote(
+                        user_id=user.id,
+                        poll_id=poll.id,
+                        option_id=int(option_id),
+                        score=1,
+                    )
+                )
+
+        elif poll.vote_type == "multiple":
+            option_ids = request.form.getlist("option_choice")
+            for oid in option_ids:
+                db.session.add(
+                    Vote(user_id=user.id, poll_id=poll.id, option_id=int(oid), score=1)
+                )
+
+        db.session.commit()
+        flash("Vote modifié.")
+        return redirect(url_for("results", poll_id=poll.id))
+
+    # construire une structure pratique pour pré-remplir le formulaire
+    if poll.vote_type == "rating":
+        user_votes = {v.option_id: v.score for v in existing_votes}
+    else:
+        user_votes = {v.option_id for v in existing_votes}
+
+    return render_template(
+        "vote.html",
+        user=user,
+        poll=poll,
+        options=options,
+        editing=True,
+        user_votes=user_votes,
+    )
 
 
 @app.route("/results/<int:poll_id>")
 def results(poll_id):
     poll = Poll.query.get_or_404(poll_id)
     settings = get_settings()
+
+    # connaître l'utilisateur courant pour proposer la modification si besoin
+    user = None
+    has_voted = False
+    if "user_id" in session:
+        user = User.query.get(session["user_id"])
+        if Vote.query.filter_by(user_id=user.id, poll_id=poll.id).first():
+            has_voted = True
 
     resultats_finaux = []
     for opt in poll.options:
@@ -307,7 +397,12 @@ def results(poll_id):
         resultats_finaux, key=lambda x: x["valeur_tri"], reverse=True
     )
     return render_template(
-        "results.html", resultats=resultats_finaux, poll=poll, settings=settings
+        "results.html",
+        resultats=resultats_finaux,
+        poll=poll,
+        settings=settings,
+        user=user,
+        has_voted=has_voted,
     )
 
 
