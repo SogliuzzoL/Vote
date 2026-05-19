@@ -228,6 +228,11 @@ def vote_poll(poll_id):
     user = User.query.get(session["user_id"])
     poll = Poll.query.get_or_404(poll_id)
 
+    # Ne pas autoriser le vote si le sondage est inactif
+    if not poll.active:
+        flash("Ce vote est inactif.")
+        return redirect(url_for("results", poll_id=poll.id))
+
     # check if user already voted on this poll
     has_voted = Vote.query.filter_by(user_id=user.id, poll_id=poll.id).first()
     if has_voted:
@@ -293,6 +298,12 @@ def edit_vote(poll_id):
 
     user = User.query.get(session["user_id"])
     poll = Poll.query.get_or_404(poll_id)
+
+    # Ne pas autoriser la modification si le sondage est inactif
+    if not poll.active:
+        flash("Ce vote est inactif.")
+        return redirect(url_for("results", poll_id=poll.id))
+
     options = poll.options
 
     existing_votes = Vote.query.filter_by(user_id=user.id, poll_id=poll.id).all()
